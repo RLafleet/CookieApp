@@ -11,7 +11,8 @@ import kotlinx.coroutines.launch
 class ClickerViewModel : ViewModel() {
     private val _stateFlow = MutableStateFlow(ClickerState())
     val stateFlow = _stateFlow.asStateFlow()
-    // events: тоасты
+    // events: toasts
+    // shared flow for toasts
     private var startTime = System.currentTimeMillis()
     private var clickCount = 0
 

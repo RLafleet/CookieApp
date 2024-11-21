@@ -1,4 +1,4 @@
-2package com.example.cookieapp
+package com.example.cookieapp
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

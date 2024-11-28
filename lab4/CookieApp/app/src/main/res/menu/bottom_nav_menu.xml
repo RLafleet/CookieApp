@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/nav_clicker"
+        android:icon="@drawable/clicker_icon"
+        android:title="@string/clicker"
+        app:iconSize="24dp"
+        android:minWidth="48dp" />
+    <item
+        android:id="@+id/nav_shop"
+        android:icon="@drawable/shop_icon"
+        android:title="@string/shop"
+        app:iconSize="24dp"
+        android:minWidth="48dp" />
+</menu>

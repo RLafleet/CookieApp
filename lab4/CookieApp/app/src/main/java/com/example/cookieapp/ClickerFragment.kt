@@ -1,5 +1,6 @@
 package com.example.cookieapp
 
+import ShopAdapter
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,7 +11,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cookieapp.databinding.FragmentClickerBinding
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -31,7 +31,13 @@ class ClickerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val shopAdapter = ShopAdapter { item -> viewModel.buyItem(item) }
+        val shopAdapter = ShopAdapter(
+            onBuyClick = { item ->
+                viewModel.buyItem(item)
+            },
+            getCurrentCookies = { viewModel.stateFlow.value.cookieCount },
+        )
+
         binding.shopRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.shopRecyclerView.adapter = shopAdapter
 
@@ -41,21 +47,39 @@ class ClickerFragment : Fragment() {
             binding.cookiesPerClickText.text = "Cookies/click: ${state.clickMultiplier}"
             binding.elapsedTimeText.text = "Time: ${state.elapsedTime}"
             binding.averageSpeedText.text = "Avg speed: ${state.averageSpeed}"
+
             shopAdapter.submitList(state.shopItems)
         }.launchIn(lifecycleScope)
 
-        binding.clickButton.setOnClickListener {
+        binding.cookieImage.setOnClickListener {
             viewModel.onCookieClick()
         }
 
-        binding.openClickerButton.setOnClickListener {
-            binding.clickerView.visibility = View.VISIBLE
-            binding.shopView.visibility = View.GONE
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_clicker -> {
+                    binding.clickerView.visibility = View.VISIBLE
+                    binding.shopView.visibility = View.GONE
+                    true
+                }
+                R.id.nav_shop -> {
+                    binding.clickerView.visibility = View.GONE
+                    binding.shopView.visibility = View.VISIBLE
+                    true
+                }
+                else -> false
+            }
         }
 
-        binding.openShopButton.setOnClickListener {
-            binding.clickerView.visibility = View.GONE
-            binding.shopView.visibility = View.VISIBLE
+        binding.cookieImage.setOnClickListener { v ->
+            v.animate()
+                .scaleX(0.85f)
+                .scaleY(0.85f)
+                .setDuration(10)
+                .withEndAction {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(100)
+                }
+            viewModel.onCookieClick()
         }
     }
 
@@ -64,3 +88,4 @@ class ClickerFragment : Fragment() {
         _binding = null
     }
 }
+

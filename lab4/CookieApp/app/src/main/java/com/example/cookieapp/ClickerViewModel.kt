@@ -4,9 +4,12 @@ import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class ClickerViewModel : ViewModel() {
     private val _stateFlow = MutableStateFlow(ClickerState())
@@ -16,10 +19,14 @@ class ClickerViewModel : ViewModel() {
     private var startTime = System.currentTimeMillis()
     private var clickCount = 0
 
+    private val _toastFlow = MutableSharedFlow<String>()
+    val toastFlow = _toastFlow.asSharedFlow()
+
     init {
         startPassiveIncome()
         startElapsedTimeTracker()
         startClickRateTracker()
+        startToastGeneration()
     }
 
     private fun startElapsedTimeTracker() {
@@ -27,21 +34,20 @@ class ClickerViewModel : ViewModel() {
             while (true) {
                 delay(1000)
                 updateElapsedTime()
-                updateAverageSpeed() // в минуту
+                updateAverageSpeed()
+                startToastGeneration()
             }
         }
     }
 
-
     @SuppressLint("DefaultLocale")
     private fun updateElapsedTime() {
         val elapsedMillis = System.currentTimeMillis() - startTime
-        val hours = (elapsedMillis / 1000 / 3600).toInt()
         val minutes = ((elapsedMillis / 1000) % 3600 / 60).toInt()
         val seconds = (elapsedMillis / 1000 % 60).toInt()
 
         _stateFlow.value = _stateFlow.value.copy(
-            elapsedTime = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+            elapsedTime = String.format("%2d:%02d", minutes, seconds)
         )
     }
 
@@ -56,16 +62,42 @@ class ClickerViewModel : ViewModel() {
         )
     }
 
+    private fun startToastGeneration() {
+        viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                val currentCookies = _stateFlow.value.cookieCount
+                if (currentCookies >= 2000) {
+                    generateRandomToast(currentCookies)
+                }
+            }
+        }
+    }
+
+    private fun generateRandomToast(cookies: Int) {
+        val randomMessages = listOf(
+            "Wow, you have $cookies cookies! Keep it up!",
+            "Nice job! You've reached $cookies cookies!",
+            "You're on fire! $cookies cookies and counting!",
+            "Amazing! $cookies cookies, you're unstoppable!"
+        )
+        val randomMessage = randomMessages[Random.nextInt(randomMessages.size)]
+
+        viewModelScope.launch {
+            _toastFlow.emit(randomMessage)
+        }
+    }
+
     private fun startClickRateTracker() {
         viewModelScope.launch {
             while (true) {
                 delay(1000)
                 val currentState = _stateFlow.value
-                val clicksPerSecond = clickCount
+                val clicksPerMinute = clickCount
 
                 clickCount = 0
 
-                val activeSpeed = clicksPerSecond * currentState.clickMultiplier
+                val activeSpeed = clicksPerMinute * currentState.clickMultiplier
                 val passiveSpeed = currentState.passiveIncome
                 _stateFlow.value = currentState.copy(
                     averageSpeed = activeSpeed + passiveSpeed
@@ -81,6 +113,8 @@ class ClickerViewModel : ViewModel() {
         clickCount++
     }
 
+    private var purchasedAtLeastOne = false
+
     fun buyItem(item: ShopItem) {
         val currentState = _stateFlow.value
 
@@ -91,13 +125,13 @@ class ClickerViewModel : ViewModel() {
                         currentLevel = shopItem.currentLevel + 1,
                         cost = (shopItem.cost * 1.5).toInt()
                     )
-                } else {
-                    shopItem
-                }
+                } else shopItem
             }
 
             val newClickMultiplier = currentState.clickMultiplier + item.multiplier
             val newPassiveIncome = currentState.passiveIncome + item.passiveRate
+
+            purchasedAtLeastOne = true
 
             _stateFlow.value = currentState.copy(
                 cookieCount = currentState.cookieCount - item.cost,

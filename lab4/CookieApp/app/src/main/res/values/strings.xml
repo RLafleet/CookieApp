@@ -10,7 +10,7 @@
     <string name="cookies_in">Cookies: 0</string>
     <string name="cookies_sec_0">Cookies/sec: 0</string>
     <string name="cookies_click_0">Cookies/click: 0</string>
-    <string name="time_00_00_00">Time: 00:00:00</string>
+    <string name="time_00_00_00">Time: 0:00</string>
     <string name="avg_speed_0">Avg Speed: 0</string>
     <string name="clicks_sec_0">Clicks/sec: 0</string>
 </resources>

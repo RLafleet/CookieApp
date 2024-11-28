@@ -1,23 +1,21 @@
-package com.example.cookieapp
-
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.cookieapp.R
+import com.example.cookieapp.ShopItem
 
-class ShopAdapter(private val onBuyClick: (ShopItem) -> Unit) :
-    RecyclerView.Adapter<ShopAdapter.ShopViewHolder>() {
-
-    private var items: List<ShopItem> = emptyList()
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun submitList(newItems: List<ShopItem>) {
-        items = newItems
-        notifyDataSetChanged()
-    }
+class ShopAdapter(
+    private val onBuyClick: (ShopItem) -> Unit,
+    private val getCurrentCookies: () -> Int
+) : ListAdapter<ShopItem, ShopAdapter.ShopViewHolder>(ShopItemDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShopViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -26,33 +24,70 @@ class ShopAdapter(private val onBuyClick: (ShopItem) -> Unit) :
     }
 
     override fun onBindViewHolder(holder: ShopViewHolder, position: Int) {
-        val item = items[position]
-        holder.bind(item)
+        holder.bind(getItem(position))
     }
-
-    override fun getItemCount(): Int = items.size
 
     inner class ShopViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val nameText: TextView = view.findViewById(R.id.nameText)
         private val costText: TextView = view.findViewById(R.id.costText)
-        private val buyButton: Button = view.findViewById(R.id.buyButton)
+        private val itemCard: CardView = itemView.findViewById(R.id.itemCard)
+        private val levelCountText: TextView = view.findViewById(R.id.levelCountText)
+        private val imageView: ImageView = view.findViewById(R.id.itemImage)
 
         @SuppressLint("SetTextI18n")
         fun bind(item: ShopItem) {
             nameText.text = "${item.name} (Lv. ${item.currentLevel}/${item.maxLevel})"
-            costText.text = "Cost: ${item.cost}"
+            costText.text = "${item.cost}"
+            levelCountText.text = "${item.currentLevel}"
 
-            if (item.currentLevel < item.maxLevel) {
-                buyButton.isEnabled = true
-                buyButton.text = "Buy"
-                buyButton.setBackgroundResource(R.drawable.button_active)
+            val currentCookies = getCurrentCookies()
+            if (item.currentLevel > 0) {
+                itemCard.setCardBackgroundColor(itemView.context.getColor(R.color.white))
+                itemCard.isEnabled = false
+            } else if (currentCookies >= item.cost) {
+                itemCard.setCardBackgroundColor(itemView.context.getColor(R.color.white_availiable))
+                itemCard.isEnabled = true
             } else {
-                buyButton.isEnabled = false
-                buyButton.text = "Max Level"
-                buyButton.setBackgroundResource(R.drawable.button_disabled)
+                itemCard.setCardBackgroundColor(itemView.context.getColor(R.color.white_transparent))
+                itemCard.isEnabled = false
             }
 
-            buyButton.setOnClickListener { onBuyClick(item) }
+            imageView.setImageResource(item.imageResId)
+
+            itemCard.isEnabled = item.currentLevel < item.maxLevel
+
+            itemCard.setOnClickListener {
+                if (item.currentLevel < item.maxLevel) {
+                    val currentCookies = getCurrentCookies()
+                    if (currentCookies >= item.cost) {
+                        onBuyClick(item)
+                    } else {
+                        val missingCookies = item.cost - currentCookies
+                        Toast.makeText(
+                            itemView.context,
+                            "Not enough cookies for upgrade: $missingCookies cookies for ${item.name}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } else {
+                    Toast.makeText(
+                        itemView.context,
+                        "This upgrade ${item.name} has reached its maximum level",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
+    }
+
+}
+
+class ShopItemDiffCallback : DiffUtil.ItemCallback<ShopItem>() {
+    override fun areItemsTheSame(oldItem: ShopItem, newItem: ShopItem): Boolean {
+        return oldItem.name == newItem.name
+    }
+
+    override fun areContentsTheSame(oldItem: ShopItem, newItem: ShopItem): Boolean {
+        return oldItem == newItem
     }
 }

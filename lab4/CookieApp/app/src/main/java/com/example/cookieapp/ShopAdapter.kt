@@ -36,21 +36,22 @@ class ShopAdapter(
 
         @SuppressLint("SetTextI18n")
         fun bind(item: ShopItem) {
-            nameText.text = "${item.name} (Lv. ${item.currentLevel}/${item.maxLevel})"
+            nameText.text = item.name
             costText.text = "${item.cost}"
             levelCountText.text = "${item.currentLevel}"
 
-            val currentCookies = getCurrentCookies()
+//            val currentCookies = getCurrentCookies()
             if (item.currentLevel > 0) {
                 itemCard.setCardBackgroundColor(itemView.context.getColor(R.color.white))
                 itemCard.isEnabled = false
-            } else if (currentCookies >= item.cost) {
-                itemCard.setCardBackgroundColor(itemView.context.getColor(R.color.white_availiable))
-                itemCard.isEnabled = true
             } else {
                 itemCard.setCardBackgroundColor(itemView.context.getColor(R.color.white_transparent))
                 itemCard.isEnabled = false
             }
+//            else if (currentCookies >= item.cost) {
+//                itemCard.setCardBackgroundColor(itemView.context.getColor(R.color.white_availiable))
+//                itemCard.isEnabled = true
+//            }
 
             imageView.setImageResource(item.imageResId)
 

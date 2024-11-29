@@ -35,4 +35,5 @@ data class ClickerState(
     ),
     val elapsedTime: String = "0:00",
     val averageSpeed: Int = 0,
+    val averageSpeedMin: Int = 0,
 )

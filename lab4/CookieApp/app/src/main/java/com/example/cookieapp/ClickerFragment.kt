@@ -35,7 +35,7 @@ class ClickerFragment : Fragment() {
             onBuyClick = { item ->
                 viewModel.buyItem(item)
             },
-            getCurrentCookies = { viewModel.stateFlow.value.cookieCount },
+            getCurrentCookies = { viewModel.getCurrentCookieCount() },
         )
 
         binding.shopRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -43,10 +43,10 @@ class ClickerFragment : Fragment() {
 
         viewModel.stateFlow.onEach { state ->
             binding.cookieCountText.text = "Cookies: ${state.cookieCount}"
-            binding.cookiesPerSecondText.text = "Cookies/sec: ${state.passiveIncome}"
+            binding.cookiesPerSecondText.text = "Cookies/sec: ${state.averageSpeed}"
             binding.cookiesPerClickText.text = "Cookies/click: ${state.clickMultiplier}"
             binding.elapsedTimeText.text = "Time: ${state.elapsedTime}"
-            binding.averageSpeedText.text = "Avg speed: ${state.averageSpeed}"
+            binding.averageSpeedText.text = "Avg speed(min): ${state.averageSpeedMin}"
 
             shopAdapter.submitList(state.shopItems)
         }.launchIn(lifecycleScope)

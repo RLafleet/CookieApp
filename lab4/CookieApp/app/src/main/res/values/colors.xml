@@ -2,6 +2,6 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="white_transparent">#307BFA39</color>
-    <color name="white_availiable">#30EBDBDB</color>
+    <color name="white_availiable">#307BFA39</color>
+    <color name="white_transparent">#30EBDBDB</color>
 </resources>

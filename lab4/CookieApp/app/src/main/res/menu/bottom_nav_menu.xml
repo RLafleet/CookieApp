@@ -4,13 +4,9 @@
     <item
         android:id="@+id/nav_clicker"
         android:icon="@drawable/clicker_icon"
-        android:title="@string/clicker"
-        app:iconSize="24dp"
-        android:minWidth="48dp" />
+        android:title="@string/clicker" />
     <item
         android:id="@+id/nav_shop"
         android:icon="@drawable/shop_icon"
-        android:title="@string/shop"
-        app:iconSize="24dp"
-        android:minWidth="48dp" />
+        android:title="@string/shop" />
 </menu>

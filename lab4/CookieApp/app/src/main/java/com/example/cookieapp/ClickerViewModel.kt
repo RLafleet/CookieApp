@@ -1,8 +1,6 @@
 package com.example.cookieapp
 
 import android.annotation.SuppressLint
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -12,11 +10,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
+@Suppress("DEPRECATED_IDENTITY_EQUALS")
 class ClickerViewModel : ViewModel() {
     private val _stateFlow = MutableStateFlow(ClickerState())
     val stateFlow = _stateFlow.asStateFlow()
@@ -27,6 +24,13 @@ class ClickerViewModel : ViewModel() {
 
     private val _toastFlow = MutableSharedFlow<String>(replay = 1)
     val toastFlow = _toastFlow.asSharedFlow()
+
+    private val _cookieCount = MutableStateFlow(0)
+    val cookieCount: StateFlow<Int> get() = _cookieCount
+
+    fun updateCookieCount(count: Int) {
+        _cookieCount.value = count
+    }
 
     private val clickHistory = IntArray(60)
     private var historyIndex = 0
@@ -70,22 +74,11 @@ class ClickerViewModel : ViewModel() {
             averageSpeed = activeSpeed + passiveSpeed
         )
     }
-
     private fun startToastGeneration() {
         viewModelScope.launch {
-            var lastToastShownAt = 0
-            while (true) {
-                delay(3000)  // Генерируем тосты каждую секунду
-
-                val randomCookies = Random.nextInt(5, 20)
-
-                // Логируем количество печенек для отладки
-                Log.d("ClickerViewModel", "Current cookies: $randomCookies")
-
-                // Генерация тоста
-                if (randomCookies > 10 && lastToastShownAt != randomCookies) {
-                    lastToastShownAt = randomCookies
-                    generateRandomToast(randomCookies)
+            cookieCount.collect { currentCookie ->
+                if (currentCookie !== 0 && currentCookie % 20 == 0) {
+                    generateRandomToast(currentCookie)
                 }
             }
         }
@@ -116,7 +109,6 @@ class ClickerViewModel : ViewModel() {
             "Amazing! $cookies cookies, you're unstoppable!"
         )
         val randomMessage = randomMessages[Random.nextInt(randomMessages.size)]
-        // Эмитируем сообщение тоста
         viewModelScope.launch(Dispatchers.Main) {
             _toastFlow.emit(randomMessage)
         }
@@ -144,6 +136,8 @@ class ClickerViewModel : ViewModel() {
         _stateFlow.value = _stateFlow.value.copy(
             cookieCount = _stateFlow.value.cookieCount + _stateFlow.value.clickMultiplier
         )
+        val newCookieCount = _stateFlow.value.cookieCount + _stateFlow.value.clickMultiplier
+        updateCookieCount(newCookieCount)
         clickCount++
         clickHistory[historyIndex]++
     }
@@ -192,6 +186,8 @@ class ClickerViewModel : ViewModel() {
                     _stateFlow.value = currentState.copy(
                         cookieCount = currentState.cookieCount + currentState.passiveIncome
                     )
+                    val newCookieCount = currentState.cookieCount + currentState.passiveIncome
+                    updateCookieCount(newCookieCount)
                 }
             }
         }

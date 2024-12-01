@@ -41,6 +41,12 @@ class ClickerFragment : Fragment() {
         binding.shopRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.shopRecyclerView.adapter = shopAdapter
 
+        viewModel.toastFlow
+            .onEach { toastMessage ->
+                showToast(toastMessage)
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         viewModel.stateFlow.onEach { state ->
             binding.cookieCountText.text = "Cookies: ${state.cookieCount}"
             binding.cookiesPerSecondText.text = "Cookies/sec: ${state.averageSpeed}"
@@ -50,10 +56,6 @@ class ClickerFragment : Fragment() {
 
             shopAdapter.submitList(state.shopItems)
         }.launchIn(lifecycleScope)
-
-        binding.cookieImage.setOnClickListener {
-            viewModel.onCookieClick()
-        }
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -81,6 +83,12 @@ class ClickerFragment : Fragment() {
                 }
             viewModel.onCookieClick()
         }
+    }
+
+
+
+    private fun showToast(message: String) {
+        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {
